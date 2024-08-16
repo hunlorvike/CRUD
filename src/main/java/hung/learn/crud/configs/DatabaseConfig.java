@@ -18,28 +18,31 @@ public class DatabaseConfig {
         try (InputStream input = DatabaseConfig.class.getClassLoader().getResourceAsStream("application.properties")) {
             Properties prop = new Properties();
 
-            // Check if the properties file is available
             if (input == null) {
                 System.err.println("Sorry, unable to find application.properties");
                 throw new RuntimeException("application.properties file not found in classpath");
             }
 
-            // Load the properties from the file
             prop.load(input);
             connectionString = prop.getProperty("db.url");
             username = prop.getProperty("db.username");
             password = prop.getProperty("db.password");
 
-            // Ensure that all required properties are set
+            // Print loaded properties
+            System.out.println("DB URL: " + connectionString);
+            System.out.println("DB Username: " + username);
+            System.out.println("DB Password: " + password);
+
             if (connectionString == null || username == null || password == null) {
                 System.err.println("Database properties not set in application.properties file");
                 throw new RuntimeException("Database properties not set in application.properties file");
             }
         } catch (IOException e) {
-            System.err.println("Error loading application.properties" + e);
+            System.err.println("Error loading application.properties: " + e);
             throw new RuntimeException("Error loading application.properties", e);
         }
     }
+
 
     /**
      * Retrieves a database connection using the configured properties.
@@ -48,7 +51,17 @@ public class DatabaseConfig {
      * @throws SQLException if a database access error occurs
      */
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(connectionString, username, password);
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("PostgreSQL JDBC Driver not found.", e);
+        }
+        try {
+            return DriverManager.getConnection(connectionString, username, password);
+        } catch (SQLException e) {
+            System.err.println("Connection attempt failed: " + e.getMessage());
+            throw e;
+        }
     }
 
     /**

@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public class StudentRepository implements IRepository<Student> {
 
-    private final Connection connection;
+    private Connection connection;
 
     public StudentRepository(Connection connection) {
         this.connection = connection;
@@ -24,6 +24,8 @@ public class StudentRepository implements IRepository<Student> {
             pstmt.setString(2, entity.getEmail());
             pstmt.setString(3, entity.getAddress());
             pstmt.executeUpdate();
+        } finally {
+            closeConnection();
         }
     }
 
@@ -38,6 +40,8 @@ public class StudentRepository implements IRepository<Student> {
                 pstmt.addBatch();
             }
             pstmt.executeBatch();
+        } finally {
+            closeConnection();
         }
     }
 
@@ -56,6 +60,8 @@ public class StudentRepository implements IRepository<Student> {
                     ));
                 }
             }
+        } finally {
+            closeConnection();
         }
         return Optional.empty();
     }
@@ -74,6 +80,8 @@ public class StudentRepository implements IRepository<Student> {
                         rs.getString("Address")
                 ));
             }
+        } finally {
+            closeConnection();
         }
         return students;
     }
@@ -87,6 +95,8 @@ public class StudentRepository implements IRepository<Student> {
             pstmt.setString(3, entity.getAddress());
             pstmt.setInt(4, entity.getId());
             pstmt.executeUpdate();
+        } finally {
+            closeConnection();
         }
     }
 
@@ -96,6 +106,8 @@ public class StudentRepository implements IRepository<Student> {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
+        } finally {
+            closeConnection();
         }
     }
 
@@ -107,6 +119,8 @@ public class StudentRepository implements IRepository<Student> {
             if (rs.next()) {
                 return rs.getInt(1);
             }
+        } finally {
+            closeConnection();
         }
         return 0;
     }
@@ -118,6 +132,20 @@ public class StudentRepository implements IRepository<Student> {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next();
+            }
+        } finally {
+            closeConnection();
+        }
+    }
+
+    private void closeConnection() {
+        if (this.connection != null) {
+            try {
+                if (!this.connection.isClosed()) {
+                    this.connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }

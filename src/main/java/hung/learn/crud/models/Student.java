@@ -3,8 +3,8 @@ package hung.learn.crud.models;
 public class Student {
     private int Id;
     private String Name;
-    public String Email;
-    public String Address;
+    private String Email;
+    private String Address;
 
     public Student() {
     }

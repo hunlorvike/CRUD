@@ -1,3 +1,13 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: Nitro
+  Date: 8/16/2024
+  Time: 8:43 PM
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,4 +38,3 @@
         </div>
     </div>
 </nav>
-<div class="container">
