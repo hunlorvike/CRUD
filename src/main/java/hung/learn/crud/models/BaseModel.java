@@ -6,16 +6,15 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(callSuper = true)
+@ToString
 @SuperBuilder
-public class Student extends BaseModel {
-    private String fullname;
-    private String phone;
-    private String address;
-    private float point;
+public abstract class BaseModel {
+    protected int id;
+    protected LocalDateTime createdAt;
+    protected LocalDateTime updatedAt;
 }

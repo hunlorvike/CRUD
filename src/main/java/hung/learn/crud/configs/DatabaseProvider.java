@@ -8,41 +8,31 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class DatabaseConfig {
-    private static final String connectionString;
-    private static final String username;
-    private static final String password;
+public class DatabaseProvider {
+    private static final String CONNECTION_STRING;
+    private static final String USERNAME;
+    private static final String PASSWORD;
 
     // Static block to initialize the database properties from the application.properties file
     static {
-        try (InputStream input = DatabaseConfig.class.getClassLoader().getResourceAsStream("application.properties")) {
-            Properties prop = new Properties();
-
+        Properties properties = new Properties();
+        try (InputStream input = DatabaseProvider.class.getClassLoader().getResourceAsStream("application.properties")) {
             if (input == null) {
-                System.err.println("Sorry, unable to find application.properties");
                 throw new RuntimeException("application.properties file not found in classpath");
             }
-
-            prop.load(input);
-            connectionString = prop.getProperty("db.url");
-            username = prop.getProperty("db.username");
-            password = prop.getProperty("db.password");
-
-            // Print loaded properties
-            System.out.println("DB URL: " + connectionString);
-            System.out.println("DB Username: " + username);
-            System.out.println("DB Password: " + password);
-
-            if (connectionString == null || username == null || password == null) {
-                System.err.println("Database properties not set in application.properties file");
-                throw new RuntimeException("Database properties not set in application.properties file");
-            }
+            properties.load(input);
         } catch (IOException e) {
-            System.err.println("Error loading application.properties: " + e);
             throw new RuntimeException("Error loading application.properties", e);
         }
-    }
 
+        CONNECTION_STRING = properties.getProperty("db.url");
+        USERNAME = properties.getProperty("db.username");
+        PASSWORD = properties.getProperty("db.password");
+
+        if (CONNECTION_STRING == null || USERNAME == null || PASSWORD == null) {
+            throw new RuntimeException("Database properties not set in application.properties file");
+        }
+    }
 
     /**
      * Retrieves a database connection using the configured properties.
@@ -54,13 +44,12 @@ public class DatabaseConfig {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            throw new SQLException("PostgreSQL JDBC Driver not found.", e);
+            throw new SQLException("MySQL JDBC Driver not found.", e);
         }
         try {
-            return DriverManager.getConnection(connectionString, username, password);
+            return DriverManager.getConnection(CONNECTION_STRING, USERNAME, PASSWORD);
         } catch (SQLException e) {
-            System.err.println("Connection attempt failed: " + e.getMessage());
-            throw e;
+            throw new SQLException("Connection attempt failed: " + e.getMessage(), e);
         }
     }
 
@@ -82,13 +71,13 @@ public class DatabaseConfig {
     /**
      * Retrieves and prints metadata about the database, including product name, version, URL, and username.
      */
-    public static void getMetadata() {
+    public static void printDatabaseMetadata() {
         try (Connection connection = getConnection()) {
             DatabaseMetaData metaData = connection.getMetaData();
-            System.out.println("Database Product Name: " + metaData.getDatabaseProductName());
-            System.out.println("Database Product Version: " + metaData.getDatabaseProductVersion());
-            System.out.println("Database URL: " + metaData.getURL());
-            System.out.println("Database Username: " + metaData.getUserName());
+            System.out.printf("Database Product Name: %s%n", metaData.getDatabaseProductName());
+            System.out.printf("Database Product Version: %s%n", metaData.getDatabaseProductVersion());
+            System.out.printf("Database URL: %s%n", metaData.getURL());
+            System.out.printf("Database Username: %s%n", metaData.getUserName());
         } catch (SQLException e) {
             System.err.println("Failed to retrieve database metadata: " + e.getMessage());
         }
@@ -99,9 +88,9 @@ public class DatabaseConfig {
      *
      * @return true if the connection is successful, false otherwise
      */
-    public static boolean checkConnection() {
+    public static boolean isConnectionValid() {
         try (Connection connection = getConnection()) {
-            return true;
+            return !connection.isClosed();
         } catch (SQLException e) {
             System.err.println("Failed to establish a database connection: " + e.getMessage());
             return false;

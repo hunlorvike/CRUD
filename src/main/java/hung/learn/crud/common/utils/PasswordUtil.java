@@ -1,4 +1,4 @@
-package hung.learn.crud.utils;
+package hung.learn.crud.common.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

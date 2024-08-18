@@ -1,152 +1,81 @@
 package hung.learn.crud.repositories;
 
 import hung.learn.crud.models.Student;
-import hung.learn.crud.repositories.shared.IRepository;
+import hung.learn.crud.repositories.shared.Repository;
 
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
-public class StudentRepository implements IRepository<Student> {
-
-    private Connection connection;
-
+public class StudentRepository extends Repository<Student, Integer> {
     public StudentRepository(Connection connection) {
-        this.connection = connection;
+        super(connection);
+    }
+
+    @Override
+    protected Student mapResultSet(ResultSet resultSet) throws SQLException {
+        Student student = new Student();
+        student.setId(resultSet.getInt("id"));
+        student.setFullname(resultSet.getString("fullname"));
+        student.setPhone(resultSet.getString("phone"));
+        student.setAddress(resultSet.getString("address"));
+        student.setPoint(resultSet.getFloat("point"));
+        return student;
+    }
+
+    @Override
+    protected String getTableName() {
+        return "student";
     }
 
     @Override
     public void add(Student entity) throws SQLException {
-        String sql = "INSERT INTO Students (Name, Email, Address) VALUES (?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, entity.getName());
-            pstmt.setString(2, entity.getEmail());
-            pstmt.setString(3, entity.getAddress());
-            pstmt.executeUpdate();
-        } finally {
-            closeConnection();
+        String sql = String.format("INSERT INTO %s (fullname, phone, address, point) VALUES (?, ?, ?, ?)", getTableName());
+        try (PreparedStatement statement = __connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, entity.getFullname());
+            statement.setString(2, entity.getPhone());
+            statement.setString(3, entity.getAddress());
+            statement.setFloat(4, entity.getPoint());
+
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        entity.setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
         }
     }
 
     @Override
     public void addRange(List<Student> entities) throws SQLException {
-        String sql = "INSERT INTO Students (Name, Email, Address) VALUES (?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            for (Student student : entities) {
-                pstmt.setString(1, student.getName());
-                pstmt.setString(2, student.getEmail());
-                pstmt.setString(3, student.getAddress());
-                pstmt.addBatch();
+        String sql = String.format("INSERT INTO %s (fullname, phone, address, point) VALUES (?, ?, ?, ?)", getTableName());
+        try (PreparedStatement statement = __connection.prepareStatement(sql)) {
+            for (Student entity : entities) {
+                statement.setString(1, entity.getFullname());
+                statement.setString(2, entity.getPhone());
+                statement.setString(3, entity.getAddress());
+                statement.setFloat(4, entity.getPoint());
+                statement.addBatch();
             }
-            pstmt.executeBatch();
-        } finally {
-            closeConnection();
+            statement.executeBatch();
         }
-    }
-
-    @Override
-    public Optional<Student> findById(int id) throws SQLException {
-        String sql = "SELECT * FROM Students WHERE Id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(new Student(
-                            rs.getInt("Id"),
-                            rs.getString("Name"),
-                            rs.getString("Email"),
-                            rs.getString("Address")
-                    ));
-                }
-            }
-        } finally {
-            closeConnection();
-        }
-        return Optional.empty();
-    }
-
-    @Override
-    public List<Student> findAll() throws SQLException {
-        List<Student> students = new ArrayList<>();
-        String sql = "SELECT * FROM Students";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                students.add(new Student(
-                        rs.getInt("Id"),
-                        rs.getString("Name"),
-                        rs.getString("Email"),
-                        rs.getString("Address")
-                ));
-            }
-        } finally {
-            closeConnection();
-        }
-        return students;
     }
 
     @Override
     public void update(Student entity) throws SQLException {
-        String sql = "UPDATE Students SET Name = ?, Email = ?, Address = ? WHERE Id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, entity.getName());
-            pstmt.setString(2, entity.getEmail());
-            pstmt.setString(3, entity.getAddress());
-            pstmt.setInt(4, entity.getId());
-            pstmt.executeUpdate();
-        } finally {
-            closeConnection();
-        }
-    }
+        String sql = String.format("UPDATE %s SET fullname = ?, phone = ?, address = ?, point = ? WHERE id = ?", getTableName());
+        try (PreparedStatement statement = __connection.prepareStatement(sql)) {
+            statement.setString(1, entity.getFullname());
+            statement.setString(2, entity.getPhone());
+            statement.setString(3, entity.getAddress());
+            statement.setFloat(4, entity.getPoint());
+            statement.setInt(5, entity.getId());
 
-    @Override
-    public void delete(int id) throws SQLException {
-        String sql = "DELETE FROM Students WHERE Id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            pstmt.executeUpdate();
-        } finally {
-            closeConnection();
-        }
-    }
-
-    @Override
-    public int count() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Students";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } finally {
-            closeConnection();
-        }
-        return 0;
-    }
-
-    @Override
-    public boolean exists(int id) throws SQLException {
-        String sql = "SELECT 1 FROM Students WHERE Id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                return rs.next();
-            }
-        } finally {
-            closeConnection();
-        }
-    }
-
-    private void closeConnection() {
-        if (this.connection != null) {
-            try {
-                if (!this.connection.isClosed()) {
-                    this.connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            statement.executeUpdate();
         }
     }
 }
