@@ -1,6 +1,7 @@
 <h2>Delete Student</h2>
 <form method="POST" action="${pageContext.request.contextPath}/delete-student">
     <input type="hidden" name="id" value="${student.id}"/>
+    <input type="hidden" name="csrfToken" value="${requestScope.csrfToken}">
     <div class="form-group">
         <p>Are you sure you want to delete the student <strong>${student.fullname}</strong>?</p>
     </div>

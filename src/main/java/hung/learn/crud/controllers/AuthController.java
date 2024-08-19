@@ -1,8 +1,8 @@
 package hung.learn.crud.controllers;
 
-import hung.learn.crud.configs.DatabaseProvider;
-import hung.learn.crud.models.Teacher;
-import hung.learn.crud.repositories.TeacherRepository;
+import hung.learn.crud.configs.database.DatabaseProvider;
+import hung.learn.crud.models.User;
+import hung.learn.crud.repositories.UserRepository;
 import hung.learn.crud.common.utils.JspUtil;
 import hung.learn.crud.common.utils.PasswordUtil;
 import hung.learn.crud.common.utils.ValidateUtil;
@@ -27,14 +27,14 @@ import static hung.learn.crud.common.Const.Views.*;
         description = "Auth"
 )
 public class AuthController extends HttpServlet {
-    private TeacherRepository teacherRepository;
+    private UserRepository teacherRepository;
     private Connection connection;
 
     @Override
     public void init() throws ServletException {
         try {
             connection = DatabaseProvider.getConnection();
-            teacherRepository = new TeacherRepository(connection);
+            teacherRepository = new UserRepository(connection);
         } catch (SQLException e) {
             throw new ServletException("Database connection error", e);
         }
@@ -103,13 +103,13 @@ public class AuthController extends HttpServlet {
             }
 
             String hashedPassword = PasswordUtil.hash(password);
-            Teacher newTeacher = Teacher.builder()
+            User newUser = User.builder()
                     .fullname(name)
                     .username(username)
                     .password(hashedPassword)
                     .build();
 
-            teacherRepository.add(newTeacher);
+            teacherRepository.add(newUser);
 
             JspUtil.setRequestAttribute(request, "toastMessage", "Sign-up successful! Please log in.");
             JspUtil.setRequestAttribute(request, "toastType", "success");
@@ -133,13 +133,16 @@ public class AuthController extends HttpServlet {
         }
 
         try {
-            Optional<Teacher> teacherOptional = teacherRepository.findByUsername(username);
+            Optional<User> teacherOptional = teacherRepository.findByUsername(username);
 
             if (teacherOptional.isPresent()) {
-                Teacher teacher = teacherOptional.get();
+                User teacher = teacherOptional.get();
 
                 if (PasswordUtil.check(password, teacher.getPassword())) {
-                    HttpSession session = request.getSession(true);
+                    HttpSession session = request.getSession();
+                    session.invalidate();
+                    session = request.getSession(true);
+                    session.setMaxInactiveInterval(30 * 60);
                     session.setAttribute("user", teacher);
 
                     JspUtil.redirectToPage(response, request.getContextPath() + "/");
@@ -159,7 +162,11 @@ public class AuthController extends HttpServlet {
 
     private void handleSignOut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getSession().invalidate();
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        JspUtil.redirectToPage(response, "/auth?action=signin");
     }
 
     @Override

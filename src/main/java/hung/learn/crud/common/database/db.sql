@@ -3,7 +3,7 @@ CREATE DATABASE IF NOT EXISTS crud;
 USE crud;
 
 -- Create teacher table
-CREATE TABLE IF NOT EXISTS teacher (
+CREATE TABLE IF NOT EXISTS users (
                                        id          INT AUTO_INCREMENT PRIMARY KEY,
                                        fullname    VARCHAR(255) NOT NULL,
     username    VARCHAR(255) NOT NULL UNIQUE,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS teacher (
     );
 
 -- Create student table
-CREATE TABLE IF NOT EXISTS student (
+CREATE TABLE IF NOT EXISTS students (
                                        id          INT AUTO_INCREMENT PRIMARY KEY,
                                        fullname    VARCHAR(255) NOT NULL,
     phone        VARCHAR(20), -- Increased length for international formats

@@ -2,6 +2,7 @@
 <h2>Create Student</h2>
 <form method="POST" action="add-student">
     <input type="hidden" name="action" value="${pageContext.request.contextPath}/add-student"/>
+    <input type="hidden" name="csrfToken" value="${requestScope.csrfToken}">
     <div class="form-group">
         <label for="studentFullname">Fullname</label>
         <input type="text" class="form-control" id="studentFullname" name="fullname" value="${fullname}">

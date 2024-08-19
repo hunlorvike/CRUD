@@ -1,6 +1,7 @@
 <h2>Edit Student</h2>
 <form method="POST" action="edit-student">
     <input type="hidden" name="action" value="${pageContext.request.contextPath}/edit-student"/>
+    <input type="hidden" name="csrfToken" value="${requestScope.csrfToken}">
     <input type="hidden" name="id" value="${student.id}"/>
     <div class="form-group">
         <label for="editStudentFullname">Fullname</label>

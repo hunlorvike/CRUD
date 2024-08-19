@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @ToString(callSuper = true)
 @Builder
-public class Teacher extends BaseModel {
+public class User extends BaseModel {
     private String fullname;
     private String username;
     private String password;

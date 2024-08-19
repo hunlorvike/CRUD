@@ -1,6 +1,6 @@
 package hung.learn.crud.repositories;
 
-import hung.learn.crud.models.Teacher;
+import hung.learn.crud.models.User;
 import hung.learn.crud.repositories.shared.Repository;
 
 import java.sql.Connection;
@@ -10,13 +10,13 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public class TeacherRepository extends Repository<Teacher, Integer> {
-    public TeacherRepository(Connection connection) {
+public class UserRepository extends Repository<User, Integer> {
+    public UserRepository(Connection connection) {
         super(connection);
     }
 
     @Override
-    public void add(Teacher entity) throws SQLException {
+    public void add(User entity) throws SQLException {
         String sql = String.format("INSERT INTO %s (fullname, username, password) VALUES (?, ?, ?)", getTableName());
         try (PreparedStatement statement = __connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, entity.getFullname());
@@ -35,10 +35,10 @@ public class TeacherRepository extends Repository<Teacher, Integer> {
     }
 
     @Override
-    public void addRange(List<Teacher> entities) throws SQLException {
+    public void addRange(List<User> entities) throws SQLException {
         String sql = String.format("INSERT INTO %s (fullname, username, password) VALUES (?, ?, ?)", getTableName());
         try (PreparedStatement statement = __connection.prepareStatement(sql)) {
-            for (Teacher entity : entities) {
+            for (User entity : entities) {
                 statement.setString(1, entity.getFullname());
                 statement.setString(2, entity.getUsername());
                 statement.setString(3, entity.getPassword());
@@ -49,7 +49,7 @@ public class TeacherRepository extends Repository<Teacher, Integer> {
     }
 
     @Override
-    public void update(Teacher entity) throws SQLException {
+    public void update(User entity) throws SQLException {
         String sql = String.format("UPDATE %s SET fullname = ?, username = ?, password = ? WHERE id = ?", getTableName());
         try (PreparedStatement statement = __connection.prepareStatement(sql)) {
             statement.setString(1, entity.getFullname());
@@ -61,7 +61,7 @@ public class TeacherRepository extends Repository<Teacher, Integer> {
         }
     }
 
-    public Optional<Teacher> findByUsername(String username) throws SQLException {
+    public Optional<User> findByUsername(String username) throws SQLException {
         String sql = String.format("SELECT * FROM %s WHERE username = ?", getTableName());
         try (PreparedStatement statement = __connection.prepareStatement(sql)) {
             statement.setString(1, username);
@@ -76,8 +76,8 @@ public class TeacherRepository extends Repository<Teacher, Integer> {
     }
 
     @Override
-    protected Teacher mapResultSet(ResultSet resultSet) throws SQLException {
-        Teacher teacher = new Teacher();
+    protected User mapResultSet(ResultSet resultSet) throws SQLException {
+        User teacher = new User();
         teacher.setId(resultSet.getInt("id"));
         teacher.setFullname(resultSet.getString("fullname"));
         teacher.setUsername(resultSet.getString("username"));
@@ -87,6 +87,6 @@ public class TeacherRepository extends Repository<Teacher, Integer> {
 
     @Override
     protected String getTableName() {
-        return "teacher";
+        return "users";
     }
 }

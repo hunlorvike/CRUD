@@ -1,7 +1,7 @@
 package hung.learn.crud.controllers;
 
 import hung.learn.crud.common.utils.JspUtil;
-import hung.learn.crud.configs.DatabaseProvider;
+import hung.learn.crud.configs.database.DatabaseProvider;
 import hung.learn.crud.models.Student;
 import hung.learn.crud.repositories.StudentRepository;
 import jakarta.servlet.ServletException;
@@ -26,6 +26,7 @@ import static hung.learn.crud.common.Const.Views.NOT_FOUND_PAGE;
         description = "Home"
 )
 public class IndexController extends HttpServlet {
+    private static final int RECORDS_PER_PAGE = 5;
     private StudentRepository studentRepository;
     private Connection connection;
 
@@ -45,9 +46,26 @@ public class IndexController extends HttpServlet {
 
         switch (path) {
             case "/index":
+                int page = 1;
+                if (req.getParameter("page") != null) {
+                    page = Integer.parseInt(req.getParameter("page"));
+                }
+
+                String nameFilter = req.getParameter("name");
+                String phoneFilter = req.getParameter("phone");
+                String addressFilter = req.getParameter("address");
+
                 try {
-                    List<Student> students = studentRepository.findAll();
+                    int totalRecords = studentRepository.countFiltered(nameFilter, phoneFilter, addressFilter);
+                    int totalPages = (int) Math.ceil(totalRecords * 1.0 / RECORDS_PER_PAGE);
+
+                    List<Student> students = studentRepository.findFilteredPaginated(nameFilter, phoneFilter, addressFilter, (page - 1) * RECORDS_PER_PAGE, RECORDS_PER_PAGE);
                     req.setAttribute("students", students);
+                    req.setAttribute("currentPage", page);
+                    req.setAttribute("totalPages", totalPages);
+                    req.setAttribute("name", nameFilter);
+                    req.setAttribute("phone", phoneFilter);
+                    req.setAttribute("address", addressFilter);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }

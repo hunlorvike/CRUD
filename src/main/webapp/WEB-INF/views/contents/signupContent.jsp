@@ -2,6 +2,7 @@
 <h2 class="mb-4">Sign Up</h2>
 <form action="auth" method="post">
     <input type="hidden" name="action" value="signup">
+    <input type="hidden" name="csrfToken" value="${requestScope.csrfToken}">
     <div class="mb-3">
         <label for="name" class="form-label">Name</label>
         <input type="text" class="form-control" id="name" name="name" value="${name}" required>

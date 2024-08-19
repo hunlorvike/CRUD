@@ -1,4 +1,4 @@
-package hung.learn.crud.configs;
+package hung.learn.crud.configs.database;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +12,7 @@ public class DatabaseProvider {
     private static final String CONNECTION_STRING;
     private static final String USERNAME;
     private static final String PASSWORD;
+    private static SimpleConnectionPool pool;
 
     // Static block to initialize the database properties from the application.properties file
     static {
@@ -32,44 +33,42 @@ public class DatabaseProvider {
         if (CONNECTION_STRING == null || USERNAME == null || PASSWORD == null) {
             throw new RuntimeException("Database properties not set in application.properties file");
         }
+
+        try {
+            pool = new SimpleConnectionPool(CONNECTION_STRING, USERNAME, PASSWORD);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
-     * Retrieves a database connection using the configured properties.
+     * Lấy kết nối cơ sở dữ liệu từ pool kết nối.
      *
-     * @return a Connection object to the database
-     * @throws SQLException if a database access error occurs
+     * @return một đối tượng Connection đến cơ sở dữ liệu
+     * @throws SQLException nếu xảy ra lỗi truy cập cơ sở dữ liệu
      */
     public static Connection getConnection() throws SQLException {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("MySQL JDBC Driver not found.", e);
-        }
-        try {
-            return DriverManager.getConnection(CONNECTION_STRING, USERNAME, PASSWORD);
-        } catch (SQLException e) {
-            throw new SQLException("Connection attempt failed: " + e.getMessage(), e);
-        }
+        return pool.getConnection();
     }
 
     /**
-     * Closes the given database connection, if it is not null.
+     * Trả kết nối về pool.
      *
-     * @param connection the Connection object to be closed
+     * @param connection kết nối cần trả về pool
      */
-    public static void closeConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                System.err.println("Failed to close the connection: " + e.getMessage());
-            }
-        }
+    public static void releaseConnection(Connection connection) {
+        pool.releaseConnection(connection);
     }
 
     /**
-     * Retrieves and prints metadata about the database, including product name, version, URL, and username.
+     * Đóng pool và giải phóng tất cả tài nguyên.
+     */
+    public static void close() {
+        pool.close();
+    }
+
+    /**
+     * Lấy và in metadata về cơ sở dữ liệu, bao gồm tên sản phẩm, phiên bản, URL và tên người dùng.
      */
     public static void printDatabaseMetadata() {
         try (Connection connection = getConnection()) {
@@ -84,9 +83,9 @@ public class DatabaseProvider {
     }
 
     /**
-     * Checks if a database connection can be successfully established.
+     * Kiểm tra xem kết nối cơ sở dữ liệu có thể được thiết lập thành công hay không.
      *
-     * @return true if the connection is successful, false otherwise
+     * @return true nếu kết nối thành công, false nếu không
      */
     public static boolean isConnectionValid() {
         try (Connection connection = getConnection()) {

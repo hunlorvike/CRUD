@@ -3,7 +3,7 @@ package hung.learn.crud.controllers;
 import hung.learn.crud.common._BaseAction;
 import hung.learn.crud.common.utils.JspUtil;
 import hung.learn.crud.common.utils.ValidateUtil;
-import hung.learn.crud.configs.DatabaseProvider;
+import hung.learn.crud.configs.database.DatabaseProvider;
 import hung.learn.crud.models.Student;
 import hung.learn.crud.repositories.StudentRepository;
 import jakarta.servlet.ServletException;
@@ -148,7 +148,7 @@ public class StudentController extends HttpServlet {
                 studentRepository.add(newStudent);
                 JspUtil.setRequestAttribute(req, "toastMessage", "Create student successful.");
                 JspUtil.setRequestAttribute(req, "toastType", "success");
-                JspUtil.forwardToPage(req, resp, INDEX_PAGE);
+                JspUtil.redirectToPage( resp, "/");
             } catch (SQLException e) {
                 throw new ServletException("Error during sign up process", e);
             }
@@ -187,7 +187,7 @@ public class StudentController extends HttpServlet {
                 studentRepository.update(updatedStudent);
                 JspUtil.setRequestAttribute(req, "toastMessage", "Update student successful.");
                 JspUtil.setRequestAttribute(req, "toastType", "success");
-                JspUtil.forwardToPage(req, resp, INDEX_PAGE);
+                JspUtil.redirectToPage( resp, "/");
             } catch (SQLException e) {
                 throw new ServletException("Error during update process", e);
             } catch (NumberFormatException e) {
@@ -209,7 +209,7 @@ public class StudentController extends HttpServlet {
                 studentRepository.delete(id);
                 JspUtil.setRequestAttribute(req, "toastMessage", "Delete student successful.");
                 JspUtil.setRequestAttribute(req, "toastType", "success");
-                JspUtil.forwardToPage(req, resp, INDEX_PAGE);
+                JspUtil.redirectToPage( resp, "/");
             } catch (SQLException e) {
                 throw new ServletException("Error during delete process", e);
             } catch (NumberFormatException e) {
